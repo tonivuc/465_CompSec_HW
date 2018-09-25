@@ -10,6 +10,8 @@ int bof(char *str)
 {
     char buffer[24];
 
+    printf("Buffer is stored at location %p\n",buffer);
+    printf("The value in the location of the return address is %2x%2x%2x%2x\n",buffer[32],buffer[33],buffer[34],buffer[35]);
     /* The following statement has a buffer overflow problem */ 
     strcpy(buffer, str);
 
