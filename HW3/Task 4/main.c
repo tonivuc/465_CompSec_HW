@@ -3,12 +3,14 @@
 #include <openssl/err.h>
 #include <string.h>
 
+//Source: https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
 void handleErrors(void)
 {
   ERR_print_errors_fp(stderr);
   abort();
 }
 
+//Source: https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
 int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
   unsigned char *iv, unsigned char *ciphertext)
 {
@@ -48,12 +50,29 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
   return ciphertext_len;
 }
 
+//Remember to append 0x20 to all words shorter than 16 bytes
+//Returns number of bytes read
+//The amount of chars in the dictionary is 206.661, far too many for a char array.
+#define MAXCHAR 100
+int encAndCompare(unsigned char *returnedArray) {
+    FILE *fp;
+    char str[MAXCHAR];
+    char* filename = "words.txt";
+ 
+    fp = fopen(filename, "r");
+    if (fp == NULL){
+        printf("Could not open file %s",filename);
+        return 1;
+    }
+    while (fgets(str, MAXCHAR, fp) != NULL)
+        printf("%s", str);
+    fclose(fp);
+    return 0;
+}
+
+//Source: https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
 int main (void)
 {
-  /* Set up the key and iv. Do I need to say to not hard code these in a
-   * real application? :-)
-   */
-
   /* A 128 bit encryption/decryption key */
   unsigned char *key = (unsigned char *)"8d20e5056a8d24d0"; //16 chars = 129 bit
 
@@ -63,14 +82,21 @@ int main (void)
   /* Message to be encrypted */
   unsigned char *plaintext = (unsigned char *)"This is a top secret.";
 
+  //Ciphertext we are matching to (In hex format)
+  unsigned char *goalCiphertext = (unsigned char *)"8d20e5056a8d24d0462ce74e4904c1b513e10d1df4a2ef2ad4540fae1ca0aaf9";
+
   /* Buffer for ciphertext. Ensure the buffer is long enough for the
    * ciphertext which may be longer than the plaintext, dependant on the
    * algorithm and mode
    */
-  unsigned char ciphertext[128]; //But we only use 64
+  unsigned char ciphertext[128]; //But we only use 64 bits =
 
-  /* Buffer for the decrypted text */
+  //Correct key
+  unsigned char correctKey[16]; //128 bits = 16 chars.
+
+  /* Buffer for the decrypted text 
   unsigned char decryptedtext[128];
+  */
 
   int decryptedtext_len, ciphertext_len;
 
@@ -80,6 +106,12 @@ int main (void)
   /* Do something useful with the ciphertext here */
   printf("Ciphertext is:\n");
   BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
+
+  printf("%s",ciphertext);
+
+
+  encAndCompare(correctKey);
+
 
   /* Decrypt the ciphertext 
   decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv,
