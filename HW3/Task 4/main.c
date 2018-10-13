@@ -10,6 +10,20 @@ void handleErrors(void)
   abort();
 }
 
+int stringToHex(unsigned char *yourString, unsigned int stringLen, unsigned char *buf) { //
+  
+  /*char buf[255] = {0};
+  char yourString[255] = { "Hello" };
+  */
+  
+  for (size_t i = 0; i < strlen(yourString); i++) {
+    sprintf(buf, "%s%x", buf, yourString[i]);
+  }
+  
+  //printf(buf+ '\n');
+  return 0;
+}
+
 //Source: https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
 int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
   unsigned char *iv, unsigned char *ciphertext)
@@ -54,15 +68,15 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
 //Returns number of bytes read
 //The amount of chars in the dictionary is 206.661, far too many for a char array.
 //Source: http://www.zentut.com/c-tutorial/c-read-text-file/
-#define MAXCHAR 100
+#define MAXCHAR 16
 int encAndCompare(unsigned char *returnedArray) {
 
 	//Variables
-  unsigned char *iv = (unsigned char *)"NULNULNULNULNULNULNULNULNULNULNULNULNULNULNULNUL"; 	/* A 128 bit IV */
+  unsigned char *iv = (unsigned char *)"NULNULNULNULNULNULNULNULNULNULNULNULNULNULNULNUL"; 	/* 16 NULs, a 128 bit IV */ //OLD: NULNULNULNULNULNULNULNULNULNULNULNULNULNULNULNUL
   unsigned char *plaintext = (unsigned char *)"This is a top secret.";   /* Message to be encrypted */
-  unsigned char *goalCiphertext = (unsigned char *)"8d20e5056a8d24d0462ce74e4904c1b513e10d1df4a2ef2ad4540fae1ca0aaf9";   //Ciphertext we are matching to (In hex format)
+  unsigned char *goalCiphertext = (unsigned char *)"8d20e5056a8d24d0462ce74e4904c1b513e10d1df4a2ef2ad4540fae1ca0aaf9";   //Ciphertext we are matching to (In hex format) 64 hexadecimals. Giving
   unsigned char ciphertext[128]; //But we only use 64 bits
-
+    unsigned long goalCiphHex = 0x8d20e5056a8d24d0462ce74e4904c1b513e10d1df4a2ef2ad4540fae1ca0aaf9;
 
     FILE *fp;
     int i;
@@ -76,14 +90,22 @@ int encAndCompare(unsigned char *returnedArray) {
         return 1;
     }
     while (fgets(str, MAXCHAR, fp) != NULL) {
-        //printf("%s", str);
+        
         strcpy(workStr,str);
         workStr[strcspn(workStr, "\n")] = 0;
+        printf("sizeof(workStr): %d\n",sizeof(workStr) / sizeof(workStr[0]));
     	for (i = (sizeof(workStr) / sizeof(workStr[0])); i < 16; i++) {
     		workStr[i] = 'Space'; //Apend to form length 16 char key
     	};
+    	printf("char: %OK\n", str[15]);
     	printf("Workstr: %s\n", workStr);
     	encrypt (plaintext, strlen ((char *)plaintext), workStr, iv, ciphertext);
+    	printf("Ciph: %s\n",ciphertext);
+
+    	//TODO:
+    	//
+    	//printf("Ciph: %02x\n",ciphertext);
+    	//printf("Goal: %s\n",goalCiphertext);
     	if (strcmp(ciphertext,goalCiphertext) == 0) {
     		printf("We found the right key! It's %s\n", workStr);
     		returnedArray = workStr; //Return the key used for encryption
@@ -118,7 +140,11 @@ int main (void)
   printf("Ciphertext is:\n");
   //BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
 
-  encAndCompare(correctKey);
+  //encAndCompare(correctKey);
+  char buf[255] = {0};
+  char yourString[255] = { "Hello" };
+  stringToHex(yourString,5,buf);
+  printf("String to hex %s\n",buf);
 
 
   /* Decrypt the ciphertext 
