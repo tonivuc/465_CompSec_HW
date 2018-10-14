@@ -10,13 +10,21 @@ void handleErrors(void)
   abort();
 }
 
+int numElementsNotSpace(unsigned char * inputStr, int stringLen) {
+	int i;
+	int numChars = 0;
+	for (i = 0; i < stringLen; i++) {
+		if (inputStr[i] != ' ' && inputStr[i] != 'Space' && inputStr[i] != 'NUL' && inputStr[i] != 0) {
+			printf("I'm counting that %d\n",inputStr[i]);
+			numChars++;
+		}
+	}
+	return numChars;
+}
+
 int stringToHex(unsigned char *yourString, unsigned int stringLen, unsigned char *buf) { //
   
-  /*char buf[255] = {0};
-  char yourString[255] = { "Hello" };
-  */
-  
-  for (size_t i = 0; i < strlen(yourString); i++) {
+  for (size_t i = 0; i < stringLen; i++) {
     sprintf(buf, "%s%x", buf, yourString[i]);
   }
   
@@ -64,6 +72,8 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
   return ciphertext_len;
 }
 
+
+
 //Remember to append 0x20 to all words shorter than 16 bytes
 //Returns number of bytes read
 //The amount of chars in the dictionary is 206.661, far too many for a char array.
@@ -75,13 +85,12 @@ int encAndCompare(unsigned char *returnedArray) {
   unsigned char *iv = (unsigned char *)"NULNULNULNULNULNULNULNULNULNULNULNULNULNULNULNUL"; 	/* 16 NULs, a 128 bit IV */ //OLD: NULNULNULNULNULNULNULNULNULNULNULNULNULNULNULNUL
   unsigned char *plaintext = (unsigned char *)"This is a top secret.";   /* Message to be encrypted */
   unsigned char *goalCiphertext = (unsigned char *)"8d20e5056a8d24d0462ce74e4904c1b513e10d1df4a2ef2ad4540fae1ca0aaf9";   //Ciphertext we are matching to (In hex format) 64 hexadecimals. Giving
-  unsigned char ciphertext[128]; //But we only use 64 bits
-    unsigned long goalCiphHex = 0x8d20e5056a8d24d0462ce74e4904c1b513e10d1df4a2ef2ad4540fae1ca0aaf9;
+
+    //unsigned long goalCiphHex = 0x8d20e5056a8d24d0462ce74e4904c1b513e10d1df4a2ef2ad4540fae1ca0aaf9;
 
     FILE *fp;
     int i;
     char str[MAXCHAR];
-    char workStr[MAXCHAR];
     char* filename = "words.txt";
  
     fp = fopen(filename, "r");
@@ -90,23 +99,39 @@ int encAndCompare(unsigned char *returnedArray) {
         return 1;
     }
     while (fgets(str, MAXCHAR, fp) != NULL) {
-        
-        strcpy(workStr,str);
-        workStr[strcspn(workStr, "\n")] = 0;
-        printf("sizeof(workStr): %d\n",sizeof(workStr) / sizeof(workStr[0]));
-    	for (i = (sizeof(workStr) / sizeof(workStr[0])); i < 16; i++) {
-    		workStr[i] = 'Space'; //Apend to form length 16 char key
-    	};
-    	printf("char: %OK\n", str[15]);
-    	printf("Workstr: %s\n", workStr);
-    	encrypt (plaintext, strlen ((char *)plaintext), workStr, iv, ciphertext);
-    	printf("Ciph: %s\n",ciphertext);
 
-    	//TODO:
-    	//
-    	//printf("Ciph: %02x\n",ciphertext);
-    	//printf("Goal: %s\n",goalCiphertext);
-    	if (strcmp(ciphertext,goalCiphertext) == 0) {
+    	int retStringSize = strlen(str);
+    	printf("Size of key read from file, including newline: %d\n",retStringSize);
+
+		unsigned char ciphertext[128]; //But we only use 64 bits
+		unsigned char ciphAsHex[64]; //But we only use 64 bits 	
+		unsigned char workStr[MAXCHAR];
+        //str[strcspn(str, "\n")] = 0; //Make the last element 0?
+        str[retStringSize-1] = 0; //Remove the \n 
+
+        int retStringSizeReal = strlen(str);
+        printf("Key size without newline%d\n: ",retStringSizeReal);
+
+        //printf("str: %sdone\n",str);
+        strcpy(workStr,str);
+        //printf("workStr: %sdone\n",workStr);
+        
+    	for (i = retStringSizeReal; i < 16; i++) {
+    		//printf("looping index %d\n",i);
+    		workStr[i] = ' '; //Apend to form length 16 char key
+    	};
+    	workStr[16] = 0; //Terminate string just to be sure
+    	//printf("char 15:%cOK\n", workStr[15]);
+    	printf("The key: %s\n", workStr);
+    	encrypt (plaintext, strlen ((char *)plaintext), workStr, iv, ciphertext);
+    	printf("Ciph bfr.: %s\n",ciphertext);
+
+    	//char buf[255] = {0};
+  		//char yourString[255] = { "Hello" };
+  		stringToHex(ciphertext,strlen(ciphertext),ciphAsHex);
+  		printf("Ciph after.: %s\n",ciphAsHex);
+  		//printf("String to hex %s\n",buf);
+    	if (strcmp(ciphAsHex,goalCiphertext) == 0) {
     		printf("We found the right key! It's %s\n", workStr);
     		returnedArray = workStr; //Return the key used for encryption
     		break;
@@ -117,48 +142,44 @@ int encAndCompare(unsigned char *returnedArray) {
     return 0;
 }
 
+void testFunction() {
+  unsigned char *iv = (unsigned char *)"NULNULNULNULNULNULNULNULNULNULNULNULNULNULNULNUL"; 	/* 16 NULs, a 128 bit IV */ //OLD: NULNULNULNULNULNULNULNULNULNULNULNULNULNULNULNUL
+  unsigned char *plaintext = (unsigned char *)"This is a top secret.";   /* Message to be encrypted */
+  unsigned char *goalCiphertext = (unsigned char *)"8d20e5056a8d24d0462ce74e4904c1b513e10d1df4a2ef2ad4540fae1ca0aaf9";   //Ciphertext we are matching to (In hex format) 64 hexadecimals. Giving
+  unsigned char ciphertext[128]; //But we only use 64 bits
+  unsigned char ciphAsHex[64]; //But we only use 64 bits    
+
+  unsigned char *key = (unsigned char *)"zucchinis       ";
+
+  /*
+  char buf[255] = {0};
+  char yourString[255] = { "X�p��3T$�" };
+  stringToHex(yourString,5,buf);
+  printf("buf: %s\n",buf);
+  */
+
+  //Input and output can be any size, but key must be 16 byte (128 bit)
+  encrypt (plaintext, strlen ((char *)plaintext), key, iv, ciphertext);	
+
+  printf("Ciphertext: %s\n",ciphertext);
+}
 //Source: https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
 int main (void)
 {
-  /* A 128 bit encryption/decryption key 
-  unsigned char *key = (unsigned char *)"8d20e5056a8d24d0"; //16 chars = 129 bit
-  */
   
   //Correct key
   unsigned char correctKey[16]; //128 bits = 16 chars.
 
-  /* Buffer for the decrypted text 
-  unsigned char decryptedtext[128];
-  */
-
   int decryptedtext_len, ciphertext_len;
-
-  /* Encrypt the plaintext */
-  //ciphertext_len = encrypt (plaintext, strlen ((char *)plaintext), key, iv, ciphertext);
 
   /* Do something useful with the ciphertext here */
   printf("Ciphertext is:\n");
-  //BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
-
-  //encAndCompare(correctKey);
-  char buf[255] = {0};
-  char yourString[255] = { "Hello" };
-  stringToHex(yourString,5,buf);
-  printf("String to hex %s\n",buf);
+  //testFunction();
+  encAndCompare(correctKey);
 
 
-  /* Decrypt the ciphertext 
-  decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv,
-    decryptedtext);
-    */
 
-  /* Add a NULL terminator. We are expecting printable text 
-  decryptedtext[decryptedtext_len] = '\0';
-	*/
-  /* Show the decrypted text 
-  printf("Decrypted text is:\n");
-  printf("%s\n", decryptedtext);
-	*/
+
 
   return 0;
 }
