@@ -13,12 +13,6 @@ unsigned char correctCiphertext[] = {
 
 //Use to compile: gcc main.c -o main -lcrypto
 
-//Source: https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
-void handleErrors(void)
-{
-  ERR_print_errors_fp(stderr);
-  abort();
-}
 
 //Don't really use this function any more
 int stringToHex(unsigned char *yourString, unsigned int stringLen, unsigned char *buf) { //
@@ -32,6 +26,15 @@ int stringToHex(unsigned char *yourString, unsigned int stringLen, unsigned char
 }
 
 //Source: https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
+void handleErrors(void)
+{
+  ERR_print_errors_fp(stderr);
+  abort();
+}
+
+
+//Only minor changes from this template:
+//https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
 int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
   unsigned char *iv, unsigned char *ciphertext)
 {
@@ -44,24 +47,17 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
   /* Create and initialise the context */
   if(!(ctx = EVP_CIPHER_CTX_new())) handleErrors();
 
-  /* Initialise the encryption operation. IMPORTANT - ensure you use a key
-   * and IV size appropriate for your cipher
-   * In this example we are using 256 bit AES (i.e. a 256 bit key). The
-   * IV size for *most* modes is the same as the block size. For AES this
-   * is 128 bits */
-  if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, iv))
+  /* Initialise the encryption operation. */
+  if(1 != EVP_EncryptInit(ctx, EVP_aes_128_cbc(), key, iv))
     handleErrors();
 
-  /* Provide the message to be encrypted, and obtain the encrypted output.
-   * EVP_EncryptUpdate can be called multiple times if necessary
-   */
+  /* Provide the message to be encrypted, and obtain the encrypted output.*/
   if(1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
     handleErrors();
   ciphertext_len = len;
 
   /* Finalise the encryption. Further ciphertext bytes may be written at
-   * this stage.
-   */
+   * this stage.*/
   if(1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len)) handleErrors();
   ciphertext_len += len;
 
@@ -72,10 +68,8 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
 }
 
 
-//Remember to append 0x20 to all words shorter than 16 bytes
-//Returns number of bytes read
-//The amount of chars in the dictionary is 206.661, far too many for a char array.
-//Source: http://www.zentut.com/c-tutorial/c-read-text-file/
+//Returns pointer to a heap-based string which contains the encryption key
+//Some inspiration for file reading taken from: http://www.zentut.com/c-tutorial/c-read-text-file/
 #define MAXCHAR 16
 char* encAndCompare(unsigned char *returnedArray) {
 
@@ -103,8 +97,8 @@ char* encAndCompare(unsigned char *returnedArray) {
 
     	int retStringSize = strlen(str);
 
-		unsigned char ciphertext[128]; //But we only use 64 bits
-		unsigned char ciphAsHex[64]; //But we only use 64 bits 	
+		unsigned char ciphertext[128];
+		unsigned char ciphAsHex[64]; 
 		
         str[retStringSize-1] = 0; //Remove the \n 
         int retStringSizeReal = strlen(str);
