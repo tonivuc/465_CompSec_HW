@@ -92,14 +92,15 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
 //The amount of chars in the dictionary is 206.661, far too many for a char array.
 //Source: http://www.zentut.com/c-tutorial/c-read-text-file/
 #define MAXCHAR 16
-int encAndCompare(unsigned char *returnedArray) {
+char* encAndCompare(unsigned char *returnedArray) {
 
 	//Variables
-  unsigned char *iv = (unsigned char *)"NULNULNULNULNULNULNULNULNULNULNULNULNULNULNULNUL"; 	/* 16 NULs, a 128 bit IV */ //OLD: NULNULNULNULNULNULNULNULNULNULNULNULNULNULNULNUL
-  unsigned char *plaintext = (unsigned char *)"This is a top secret.";   /* Message to be encrypted */
-  unsigned char *goalCiphertext = (unsigned char *)"8d20e5056a8d24d0462ce74e4904c1b513e10d1df4a2ef2ad4540fae1ca0aaf9";   //Ciphertext we are matching to (In hex format) 64 hexadecimals. Giving
+    unsigned char iv[] = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
+    unsigned char *plaintext = (unsigned char *)"This is a top secret."; 
+    unsigned char ciphAsHex[128];  
+    //unsigned char *key = (unsigned char *)"median          ";	//16 chars long
 
-    //unsigned long goalCiphHex = 0x8d20e5056a8d24d0462ce74e4904c1b513e10d1df4a2ef2ad4540fae1ca0aaf9;
+    unsigned char *correctAnsw = (unsigned char *)"median          ";	//16 chars long
 
     FILE *fp;
     int i;
@@ -118,64 +119,51 @@ int encAndCompare(unsigned char *returnedArray) {
 
 		unsigned char ciphertext[128]; //But we only use 64 bits
 		unsigned char ciphAsHex[64]; //But we only use 64 bits 	
-		unsigned char workStr[MAXCHAR];
+		//unsigned char workStr[MAXCHAR];
+		unsigned char *workStr;
+		workStr = (char *)malloc(sizeof(char)*(MAXCHAR+1)); 
         //str[strcspn(str, "\n")] = 0; //Make the last element 0?
         str[retStringSize-1] = 0; //Remove the \n 
 
         int retStringSizeReal = strlen(str);
         printf("Key size without newline%d\n: ",retStringSizeReal);
 
-        //printf("str: %sdone\n",str);
         strcpy(workStr,str);
-        //printf("workStr: %sdone\n",workStr);
         
     	for (i = retStringSizeReal; i < 16; i++) {
     		//printf("looping index %d\n",i);
     		workStr[i] = ' '; //Apend to form length 16 char key
     	};
     	workStr[16] = 0; //Terminate string just to be sure
-    	//printf("char 15:%cOK\n", workStr[15]);
-    	printf("The key: %s\n", workStr);
+    	printf("The key: %sKEYEND\n", workStr);
+
+    	/*
+    	if (strncmp(workStr,correctAnsw,16) == 0) {
+    		printf("Found correct key!");
+    		break;
+    	}
+		*/
+
+    	//encrypt (plaintext, strlen ((char *)plaintext), workStr, iv, ciphertext);
     	encrypt (plaintext, strlen ((char *)plaintext), workStr, iv, ciphertext);
-    	printf("Ciph bfr.: %s\n",ciphertext);
+    	//printf("Ciph bfr.: %s\n",ciphertext);
 
     	//char buf[255] = {0};
   		//char yourString[255] = { "Hello" };
-  		stringToHex(ciphertext,strlen(ciphertext),ciphAsHex);
-  		printf("Ciph after.: %s\n",ciphAsHex);
+  		//stringToHex(ciphertext,strlen(ciphertext),ciphAsHex);
+  		//printf("Ciph after.: %s\n",ciphAsHex);
   		//printf("String to hex %s\n",buf);
-    	if (strcmp(ciphAsHex,goalCiphertext) == 0) {
+    	if (strncmp(correctCiphertext, ciphertext,32) == 0) {
     		printf("We found the right key! It's %s\n", workStr);
     		returnedArray = workStr; //Return the key used for encryption
-    		break;
+    		//break;
+    		fclose(fp);
+    		return workStr;
     	}
     }
     	
     fclose(fp);
     return 0;
-}
-
-void testFunction() {
-unsigned char iv[] = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0}; 	/* 16 NULs, a 128 bit IV */ //OLD: NULNULNULNULNULNULNULNULNULNULNULNULNULNULNULNUL
-unsigned char *plaintext = (unsigned char *)"This is a top secret.";   /* Message to be encrypted */
-
-  unsigned char *goalCiphertext = (unsigned char *)"8d20e5056a8d24d0462ce74e4904c1b513e10d1df4a2ef2ad4540fae1ca0aaf9";   //Ciphertext we are matching to (In hex format) 64 hexadecimals. Giving
-  unsigned char ciphertext[128]; //But we only use 64 bits
-  unsigned char ciphAsHex[64]; //But we only use 64 bits    
-
-  unsigned char *key = (unsigned char *)"zucchinis       ";
-
-  /*
-  char buf[255] = {0};
-  char yourString[255] = { "X�p��3T$�" };
-  stringToHex(yourString,5,buf);
-  printf("buf: %s\n",buf);
-  */
-
-  //Input and output can be any size, but key must be 16 byte (128 bit)
-  encrypt (plaintext, strlen ((char *)plaintext), key, iv, ciphertext);	
-
-  printf("Ciphertext: %s\n",ciphertext);
 }
 
 void testFunc2() {
@@ -213,10 +201,11 @@ int main (void)
   /* Do something useful with the ciphertext here */
   //printf("Ciphertext is:\n");
   //testFunction();
-  //encAndCompare(correctKey);
-  testFunc2();
+  char * retVal = encAndCompare(correctKey);
+  //testFunc2();
 
   //printf("Correct ciphertext: %s",correctCiphertext);
+  printf("Correct key: %s", retVal);
 
 
 
