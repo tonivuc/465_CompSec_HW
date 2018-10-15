@@ -3,6 +3,8 @@
 #include <openssl/err.h>
 #include <string.h>
 
+//Use to compile: gcc main.c -o main -lcrypto
+
 //Source: https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
 void handleErrors(void)
 {
@@ -163,6 +165,23 @@ void testFunction() {
 
   printf("Ciphertext: %s\n",ciphertext);
 }
+
+void testFunc2() {
+  unsigned char iv[] = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0}; 	/* 16 NULs, a 128 bit IV */ //OLD: NULNULNULNULNULNULNULNULNULNULNULNULNULNULNULNUL
+  unsigned char *plaintext = (unsigned char *)"This is a top secret.";   /* Message to be encrypted */
+  unsigned char *goalCiphertext = (unsigned char *)"8d20e5056a8d24d0462ce74e4904c1b513e10d1df4a2ef2ad4540fae1ca0aaf9";   //Ciphertext we are matching to (In hex format) 64 hexadecimals. Giving
+  unsigned char ciphertext[128];
+  unsigned char ciphAsHex[128];  
+
+  unsigned char *key = (unsigned char *)"median          ";	
+
+  encrypt (plaintext, strlen ((char *)plaintext), key, iv, ciphertext);	
+
+  stringToHex(ciphertext,strlen(ciphertext),ciphAsHex);
+  printf("goalCiphertext: %s\n",goalCiphertext);
+  printf("Ciphertext: %s\n",ciphAsHex);
+}
+
 //Source: https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
 int main (void)
 {
@@ -175,7 +194,8 @@ int main (void)
   /* Do something useful with the ciphertext here */
   printf("Ciphertext is:\n");
   //testFunction();
-  encAndCompare(correctKey);
+  //encAndCompare(correctKey);
+  testFunc2();
 
 
 
@@ -183,3 +203,4 @@ int main (void)
 
   return 0;
 }
+
