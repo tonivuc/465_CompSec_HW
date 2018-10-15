@@ -3,6 +3,16 @@
 #include <openssl/err.h>
 #include <string.h>
 
+unsigned const char correctCiphertext[] = {
+	0x8d, 0x20, 0xe5, 0x05, 0x6a, 0x8d, 0x24, 0xd0,
+	0x46, 0x2c, 0xe7, 0x4e, 0x49, 0x04, 0xc1, 0xb5,
+	0x13, 0xe1, 0x0d, 0x1d, 0xf4, 0xa2, 0xef, 0x2a,
+	0xd4, 0x54, 0x0f, 0xae, 0x1c, 0xa0, 0xaa, 0xf9
+};
+
+unsigned const char iv[] = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0}; 	/* 16 NULs, a 128 bit IV */ //OLD: NULNULNULNULNULNULNULNULNULNULNULNULNULNULNULNUL
+unsigned const char *plaintext = (unsigned char *)"This is a top secret.";   /* Message to be encrypted */
+
 //Use to compile: gcc main.c -o main -lcrypto
 
 //Source: https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
@@ -145,8 +155,7 @@ int encAndCompare(unsigned char *returnedArray) {
 }
 
 void testFunction() {
-  unsigned char *iv = (unsigned char *)"NULNULNULNULNULNULNULNULNULNULNULNULNULNULNULNUL"; 	/* 16 NULs, a 128 bit IV */ //OLD: NULNULNULNULNULNULNULNULNULNULNULNULNULNULNULNUL
-  unsigned char *plaintext = (unsigned char *)"This is a top secret.";   /* Message to be encrypted */
+
   unsigned char *goalCiphertext = (unsigned char *)"8d20e5056a8d24d0462ce74e4904c1b513e10d1df4a2ef2ad4540fae1ca0aaf9";   //Ciphertext we are matching to (In hex format) 64 hexadecimals. Giving
   unsigned char ciphertext[128]; //But we only use 64 bits
   unsigned char ciphAsHex[64]; //But we only use 64 bits    
@@ -167,10 +176,10 @@ void testFunction() {
 }
 
 void testFunc2() {
-  unsigned char iv[] = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0}; 	/* 16 NULs, a 128 bit IV */ //OLD: NULNULNULNULNULNULNULNULNULNULNULNULNULNULNULNUL
+  unsigned const char iv[] = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0}; 	/* 16 NULs, a 128 bit IV */ //OLD: NULNULNULNULNULNULNULNULNULNULNULNULNULNULNULNUL
   unsigned char *plaintext = (unsigned char *)"This is a top secret.";   /* Message to be encrypted */
-  unsigned char *goalCiphertext = (unsigned char *)"8d20e5056a8d24d0462ce74e4904c1b513e10d1df4a2ef2ad4540fae1ca0aaf9";   //Ciphertext we are matching to (In hex format) 64 hexadecimals. Giving
-  unsigned char ciphertext[128];
+  //unsigned char *goalCiphertext = (unsigned char *)"8d20e5056a8d24d0462ce74e4904c1b513e10d1df4a2ef2ad4540fae1ca0aaf9";   //Ciphertext we are matching to (In hex format) 64 hexadecimals. Giving
+  unsigned char ciphertext[128]; //                   8d20e556a8d24d0462ce74e494c1b513e1d1df4a2ef2ad454fae1ca0
   unsigned char ciphAsHex[128];  
 
   unsigned char *key = (unsigned char *)"median          ";	
@@ -178,7 +187,7 @@ void testFunc2() {
   encrypt (plaintext, strlen ((char *)plaintext), key, iv, ciphertext);	
 
   stringToHex(ciphertext,strlen(ciphertext),ciphAsHex);
-  printf("goalCiphertext: %s\n",goalCiphertext);
+  printf("goalCiphertext: %s\n",correctCiphertext);
   printf("Ciphertext: %s\n",ciphAsHex);
 }
 
