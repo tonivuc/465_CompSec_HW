@@ -105,8 +105,8 @@ int feistelRound(unsigned const char leftInput[], unsigned const char rightInput
 
 	//Do this after running the DES function
 	for (int i = 0; i < HALFINPUTSIZE; i++) {
-		rightSideOutput[i] = rightSideOutput[i] ^ key[i];
-	}
+		rightSideOutput[i] = rightSideOutput[i] ^ key[i]; //XOR
+	} 
 
 	return 0; //Success
 }
@@ -143,6 +143,7 @@ int DESRound() {
 	//Initial permutation
 
 	//Fesistel round
+	feistelRound();
 
 	//No need to swap halves I think?
 
