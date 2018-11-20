@@ -3,7 +3,7 @@
 #include <openssl/evp.h>
 
 #define HASH_OUTPUT_SIZE 24
-#define MESSAGE_SIZE 32
+#define MESSAGE_SIZE 30
 
 static char *rand_string(char *str, size_t size)
 {
@@ -29,7 +29,7 @@ static char *rand_string(char *str, size_t size)
      const EVP_MD *md;
      const EVP_MD *md2;
      char mess1[MESSAGE_SIZE];
-     char mess2[MESSAGE_SIZE];
+     char mess2[MESSAGE_SIZE] = "HELLOOHELLOOHELLOOHELLOOHELLO";
      unsigned char md_value[EVP_MAX_MD_SIZE];
      unsigned char md_value2[EVP_MAX_MD_SIZE];
      unsigned int md_len, i;
@@ -48,34 +48,25 @@ static char *rand_string(char *str, size_t size)
      mdctx = EVP_MD_CTX_create();
      mdctx2 = EVP_MD_CTX_create();
 
+     EVP_DigestInit_ex(mdctx2, md, NULL);
+     EVP_DigestUpdate(mdctx2, mess2, strlen(mess2));
+     EVP_DigestFinal_ex(mdctx2, md_value2, &md_len);
+     printf("%d\n",sizeof(md_value2[3]));
     
      int attempts = 0;
      do {
         attempts++;
         rand_string(mess1,MESSAGE_SIZE);
-        rand_string(mess2,MESSAGE_SIZE);
          EVP_DigestInit_ex(mdctx, md, NULL);
-         EVP_DigestInit_ex(mdctx2, md, NULL);
+         
          EVP_DigestUpdate(mdctx, mess1, strlen(mess1));
-         EVP_DigestUpdate(mdctx2, mess2, strlen(mess2));
+         
          EVP_DigestFinal_ex(mdctx, md_value, &md_len);
-         EVP_DigestFinal_ex(mdctx2, md_value2, &md_len);
+         
          //printf("%d\n",(strncmp(md_value,md_value2,3) != 0));    
-          /*
-              printf("Digest iz: ");
-     for (i = 0; i < md_len; i++) {
-         printf("%02x", md_value[i]);
-         
-     }
-     printf("\n");
-              printf("Digest iz: ");
-     for (i = 0; i < md_len; i++) {
-         printf("%02x", md_value2[i]);
-         
-     }
-     printf("\n");
-     */
      } while ((strncmp(md_value,md_value2,3) != 0)); 
+
+
 
         printf("%s\n",mess1);
         printf("%s\n",mess2);

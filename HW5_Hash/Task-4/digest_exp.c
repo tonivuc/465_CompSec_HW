@@ -4,7 +4,7 @@
 
 static char *rand_string(char *str, size_t size)
 {
-    const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJK...";
+    const char charset[] = "123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJK...";
     if (size) {
         --size;
         for (size_t n = 0; n < size; n++) {
@@ -16,6 +16,7 @@ static char *rand_string(char *str, size_t size)
     return str;
 }
 
+//gcc digest_exp.c -o dig -lcrypto -lssl
  int main(int argc, char *argv[])
  {
      OpenSSL_add_all_digests();
