@@ -1,0 +1,17 @@
+password for priv key is toni
+
+https://rietta.com/blog/2012/01/27/openssl-generating-rsa-key-from-command/
+http://krisjordan.com/essays/encrypting-with-rsa-key-pairs
+
+Encrypt:
+cat message.txt \
+ | openssl rsautl \
+     -encrypt \
+     -pubin -inkey public.pem \
+ > message_enc.txt
+
+Decrypt:
+cat message_enc.txt \
+  | openssl rsautl \
+      -decrypt \
+      -inkey private.pem
